@@ -15,7 +15,7 @@ gd.connect()
 gd.createFolder()
 try:
   for line in confFile:
-    print "## {0}".format(line),
+    g.log("## {0}".format(line))
     data = line.split(':')
     data[1] = data[1].rstrip()
     if(data[0] == 'server'):
@@ -29,4 +29,4 @@ try:
       g.usr = data[1]
 
 except:
-  print "error", str(sys.exc_info())
+  g.log("error", str(sys.exc_info()))

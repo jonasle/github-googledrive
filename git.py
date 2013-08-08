@@ -21,15 +21,16 @@ class Git:
     print "DONE"
 
   def backup(self, reponame):
-    print ">> Backing up {0} ".format(reponame).ljust(60, '.'),
+    self.log(">> Backing up {0} ".format(reponame).ljust(60, '.'))
     filename = reponame + '.bundle'
     cd(reponame)
     self.log(git.bundle.create('../'+filename, '--all'))
-    print 'DONE'
+    self.log('DONE\n')
     cd('..')
     return filename
 
   def log(self, string):
     self.f.write("\n### LOG ENTRY - {0} ###\n".format(datetime.now()))
+    print str(string)
     self.f.write(str(string))
     return

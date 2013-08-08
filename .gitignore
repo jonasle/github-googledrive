@@ -33,3 +33,12 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Vim
+*.swp
+
+# Gitbackup
+*.bundle
+*.log
+.gitbackup-gdrive
+gitbackup.conf
