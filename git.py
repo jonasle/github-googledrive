@@ -2,17 +2,18 @@
 from sh import git
 from sh import cd,ls,pwd,rm
 import sys
+import logging
 from datetime import datetime
 
 class Git:
 
   srv = None
   usr = None
-  f = None
+  lgr = None
 
   def __init__(self, server = 'git@github.com'):
     self.srv = server
-    self.f = open('gitbackup-{0}.log'.format(datetime.now()), 'w')
+    self.lgr = logging.getLogger('gitbackup')
 
   def clone(self, reponame):
     print ">> Cloning {0} ".format(reponame).ljust(60, '.'),
@@ -30,7 +31,5 @@ class Git:
     return filename
 
   def log(self, string):
-    self.f.write("\n### LOG ENTRY - {0} ###\n".format(datetime.now()))
-    print str(string)
-    self.f.write(str(string))
+    self.lgr.debug(str(string))
     return
