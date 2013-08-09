@@ -2,11 +2,16 @@
 from git import Git
 from gdrive import GDrive
 import sys
+import logging
+
+logging.basicConfig(filename='gitbackup-{0}.log'.format(datetime.now()))
+logger = logging.getLogger('gitbackup')
+
 confFile = ''
 try:
   confFile = open('gitbackup.conf', 'r')
 except IOError as e:
-  print 'Uh oh...' + str(e)
+  logger.error('Uh oh...' + str(e))
   confFile = open('gitbackup.conf', 'w')
   
 g = Git()
@@ -15,7 +20,7 @@ gd.connect()
 gd.createFolder()
 try:
   for line in confFile:
-    g.log("## {0}".format(line))
+    logger.info("## {0}".format(line))
     data = line.split(':')
     data[1] = data[1].rstrip()
     if(data[0] == 'server'):
@@ -29,4 +34,4 @@ try:
       g.usr = data[1]
 
 except:
-  g.log("error", str(sys.exc_info()))
+  logger.error("error", str(sys.exc_info()))
