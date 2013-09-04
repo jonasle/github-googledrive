@@ -7,13 +7,14 @@ from apiclient.http import MediaFileUpload
 from oauth2client.client import OAuth2WebServerFlow, OAuth2Credentials, AccessTokenRefreshError 
 
 import time
-from datetime import datetime
-
+from datetime import date
+import logging
 
 class GDrive:
+
   #GIT BACKUP client 
-  CLIENT_ID = '119053820637.apps.googleusercontent.com'
-  CLIENT_SECRET = 'PfZsNGw6xZITgeWkZgOFfkuq'
+  CLIENT_ID = ''
+  CLIENT_SECRET = ''
 
   # Check https://developers.google.com/drive/scopes for all available scopes
   OAUTH_SCOPE = 'https://www.googleapis.com/auth/drive'
@@ -23,8 +24,10 @@ class GDrive:
 
   drive_service = ''
   parent_id = None
+  logger = None
 
   def __init__(self):
+    self.logger = logging.getLogger('gitbackup')
     return
 
   def authorize(self):
@@ -32,8 +35,8 @@ class GDrive:
     flow = OAuth2WebServerFlow(self.CLIENT_ID, self.CLIENT_SECRET, self.OAUTH_SCOPE, self.REDIRECT_URI)
     authorize_url = flow.step1_get_authorize_url()
     print 'Go to the following link in your browser: ' + authorize_url
+
     code = raw_input('Enter verification code: ').strip()
-    #code = '4/Bv12BG7EZvzXIoEOKN4gXFElvEmb.YpayhnRqF_cSOl05ti8ZT3aT_E58gAI'
     credentials = flow.step2_exchange(code)
     json = credentials.to_json()
     try:
@@ -61,30 +64,38 @@ class GDrive:
       f.close()
     except IOError as e:
       if(first):
+        print(e)
         self.authorize()
         self.connect(False)
       else:
-        print("That's some funky shit, bailing out")
-        print(e)
+        self.logger.error("That's some funky shit, bailing out")
+        self.logger.error(e)
   
   def createFolder(self, name=None):
     try:
       if(not name):
-        name = 'gitbackup-{0}'.format(datetime.now())
-        body = {
-          'title': name,
-          'mimeType': "application/vnd.google-apps.folder"
-        }
-        file = self.drive_service.files().insert(body=body).execute()
-        self.parent_id = file['id']
+        name = 'gitbackup-{0}'.format(date.today())
+
+      # Check if folder exists
+      results = self.drive_service.files().list(q="mimeType='application/vnd.google-apps.folder' and trashed=false and title='" + name + "'").execute()
+      if( len(results['items']) > 0):
+        self.parent_id = results['items'][0]['id']
+        return
+
+      body = {
+        'title': name,
+        'mimeType': "application/vnd.google-apps.folder"
+      }
+      file = self.drive_service.files().insert(body=body).execute()
+      self.parent_id = file['id']
     except AccessTokenRefreshError as e:
-      print "Got an AccessTokenRefreshError " + str(e)
+      self.logger.error("Got an AccessTokenRefreshError " + str(e))
       self.authorize()
       self.connect()
       self.createFolder(name)
 
   def upload(self, filename, fileinfo = {'title' : 'Git-Backup', 'description' : 'A bundle backup from git'}):
-    print ">> Uploading {0} ".format(filename).ljust(60, '.'),
+    self.logger.info(">> Uploading {0} ".format(filename).ljust(60, '.'),)
     try:
       # Insert a file
       media_body = MediaFileUpload(filename, mimetype='application/octet-stream', resumable=False)
@@ -99,10 +110,9 @@ class GDrive:
 
       file = self.drive_service.files().insert(body=body, media_body=media_body).execute()
       #pprint.pprint(file)
-      print "DONE"
+      self.logger.info("DONE")
     except AccessTokenRefreshError as e:
-      print "FAIL"
-      print "Got an AccessTokenRefreshError " + str(e)
+      self.logger.error("Got an AccessTokenRefreshError " + str(e))
       self.authorize()
       self.connect()
       self.upload(filename)
