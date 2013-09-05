@@ -1,3 +1,9 @@
-gdrivesecret:YOURCLIENTSECRET
-user:jonasle
-repo:github-googledrive
+# Generic settings for Google Drive
+# Keep these lines at the top of the file unless you know what you are doing
+gdrive_id:YOURCLIENTID
+gdrive_secret:YOURCLIENTSECRET
+# Github Repositories
+gh-user:jonasle
+gh-repo:github-googledrive
+# Generic Repositories
+#repository:git@github.com:jonasle/github-googledrive
