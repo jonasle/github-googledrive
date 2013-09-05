@@ -2,14 +2,16 @@
 from git import Git
 from gdrive import GDrive
 from datetime import datetime
-from sh import cd,ls,pwd,rm,mkdir
-import sys, traceback, string
+from sh import cd, pwd, rm, mkdir
+import sys
+import traceback
+import string
 import random
 import logging
 
 def rand_id():
   char_set = string.ascii_letters + string.digits
-  return ''.join(random.sample(char_set*6,6))
+  return ''.join(random.sample(char_set*6, 6))
 
 def performBackup(gitclient, gdclient, repository):
   tmpdir = rand_id()
@@ -64,8 +66,8 @@ except:
   exceptioninfo = sys.exc_info()
   logger.error(exceptioninfo[0])
   logger.error(exceptioninfo[1])
-  tb = traceback.format_tb(exceptioninfo[2])
-  for line in tb:
+  trace = traceback.format_tb(exceptioninfo[2])
+  for line in trace:
     logger.debug(line.rstrip())
 
 
