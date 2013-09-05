@@ -37,8 +37,12 @@ nosetests.xml
 # Vim
 *.swp
 
-# Sonar-runner
+# Code analysis
 sonar-project.properties
+.sonar/
+htmlcov/
+pylint.html
+pylint.rc
 
 # Gitbackup
 *.bundle
