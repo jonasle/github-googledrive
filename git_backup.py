@@ -26,51 +26,52 @@ def performBackup(gitclient, gdclient, repository):
   cd(wrkdir)
   rm('-rf', tmpdir)
 
+def main():
+  logging.basicConfig(filename='gitbackup-{0}.log'.format(datetime.now()))
+  logger = logging.getLogger('gitbackup')
+  logger.setLevel(logging.DEBUG)
 
-logging.basicConfig(filename='gitbackup-{0}.log'.format(datetime.now()))
-logger = logging.getLogger('gitbackup')
-logger.setLevel(logging.DEBUG)
+  confFile = ''
+  try:
+    confFile = open('gitbackup.conf', 'r')
+  except IOError as e:
+    logger.error('Uh oh...' + str(e))
+    confFile = open('gitbackup.conf', 'w')
+    
+  g = Git()
+  gd = GDrive(pwd().strip())
 
-confFile = ''
-try:
-  confFile = open('gitbackup.conf', 'r')
-except IOError as e:
-  logger.error('Uh oh...' + str(e))
-  confFile = open('gitbackup.conf', 'w')
-  
-g = Git()
-gd = GDrive(pwd().strip())
+  try:
+    for line in confFile:
+      if(line[0] == '#'):
+        continue
+      data = line.strip().split(':')
+      logger.debug('## Parsed config line to "{0}" - "{1}"'.format(data[0], data[1]))
+      if(data[0] == 'gdrive_id'):
+        gd.CLIENT_ID = data[1]
+      if(data[0] == 'gdrive_secret'):
+        gd.CLIENT_SECRET = data[1]
+      if(data[0] == 'server'):
+        g.srv = data[1]
+      if(data[0] == 'gh-user'):
+        g.usr = data[1]
+      if(data[0] == 'gh-repo'):
+        performBackup(g, gd, data[1])
+      if(data[0] == 'repository'):
+        g.usr = None
+        g.srv = data[1]
+        performBackup(g, gd, data[2])
 
-try:
-  for line in confFile:
-    if(line[0] == '#'):
-      continue
-    data = line.strip().split(':')
-    logger.debug('## Parsed config line to "{0}" - "{1}"'.format(data[0], data[1]))
-    if(data[0] == 'gdrive_id'):
-      gd.CLIENT_ID = data[1]
-    if(data[0] == 'gdrive_secret'):
-      gd.CLIENT_SECRET = data[1]
-    if(data[0] == 'server'):
-      g.srv = data[1]
-    if(data[0] == 'gh-user'):
-      g.usr = data[1]
-    if(data[0] == 'gh-repo'):
-      performBackup(g, gd, data[1])
-    if(data[0] == 'repository'):
-      g.usr = None
-      g.srv = data[1]
-      performBackup(g, gd, data[2])
-
-except:
-  exceptioninfo = sys.exc_info()
-  logger.error(exceptioninfo[0])
-  logger.error(exceptioninfo[1])
-  trace = traceback.format_tb(exceptioninfo[2])
-  for line in trace:
-    logger.debug(line.rstrip())
-
-
+  except:
+    exceptioninfo = sys.exc_info()
+    logger.error(exceptioninfo[0])
+    logger.error(exceptioninfo[1])
+    trace = traceback.format_tb(exceptioninfo[2])
+    for line in trace:
+      logger.debug(line.rstrip())
 
 
+
+if __name__ == "__main__":
+  main()
 
