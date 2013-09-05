@@ -36,9 +36,9 @@ class GDrive:
     # Run through the OAuth flow and retrieve credentials
     flow = OAuth2WebServerFlow(self.CLIENT_ID, self.CLIENT_SECRET, self.OAUTH_SCOPE, self.REDIRECT_URI)
     authorize_url = flow.step1_get_authorize_url()
-    print 'Go to the following link in your browser: ' + authorize_url
+    prompt = 'Go to the following link in your browser: {0}\nEnter verification code: '.format(authorize_url)
 
-    code = raw_input('Enter verification code: ').strip()
+    code = raw_input(prompt).strip()
     credentials = flow.step2_exchange(code)
     json = credentials.to_json()
     try:
@@ -46,7 +46,8 @@ class GDrive:
       f.write(str(json))
       f.close()
     except IOError as e:
-      print e
+      self.logger.error("That's some funky shit, bailing out")
+      self.logger.error(e)
       return
     # Create an httplib2.Http object and authorize it with our credentials
     #http = httplib2.Http()
