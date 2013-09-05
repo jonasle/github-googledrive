@@ -2,9 +2,27 @@
 from git import Git
 from gdrive import GDrive
 from datetime import datetime
-import sys
+from sh import cd,ls,pwd,rm,mkdir
+import sys, traceback, string
+import random
 import logging
 
+def rand_id():
+  char_set = string.ascii_letters + string.digits
+  return ''.join(random.sample(char_set*6,6))
+
+def performBackup(gitclient, gdclient, repository):
+  tmpdir = rand_id()
+  wrkdir = pwd().strip()
+  mkdir(tmpdir)
+  cd(tmpdir)
+  gitclient.clone(repository)
+  fn = gitclient.backup(repository)
+  gdclient.connect()
+  gdclient.createFolder()
+  gdclient.upload(wrkdir + '/' + tmpdir + '/' + fn, {'title': repository, 'description': 'Backup of repository ' + repository })
+  cd(wrkdir)
+  rm('-rf', tmpdir)
 
 
 logging.basicConfig(filename='gitbackup-{0}.log'.format(datetime.now()))
@@ -19,14 +37,13 @@ except IOError as e:
   confFile = open('gitbackup.conf', 'w')
   
 g = Git()
-gd = GDrive()
+gd = GDrive(pwd().strip())
 
 try:
   for line in confFile:
     if(line[0] == '#'):
       continue
-    logger.info("## Read config line: {0}".format(line))
-    data = line.rstrip().split(':')
+    data = line.strip().split(':')
     logger.debug('## Parsed config line to "{0}" - "{1}"'.format(data[0], data[1]))
     if(data[0] == 'gdrive_id'):
       gd.CLIENT_ID = data[1]
@@ -36,14 +53,20 @@ try:
       g.srv = data[1]
     if(data[0] == 'gh-user'):
       g.usr = data[1]
-    if(data[0] == 'repository' or data[0] == 'gh-repo'):
-      g.clone(data[1])
-      fn = g.backup(data[1])
-      gd.connect()
-      gd.createFolder()
-      gd.upload(fn, {'title': data[1], 'description': 'Backup of repository ' + data[1] })
+    if(data[0] == 'gh-repo'):
+      performBackup(g, gd, data[1])
+    if(data[0] == 'repository'):
+      g.usr = None
+      g.srv = data[1]
+      performBackup(g, gd, data[2])
+
 except:
-  logger.error("error", str(sys.exc_info()))
+  exceptioninfo = sys.exc_info()
+  logger.error(exceptioninfo[0])
+  logger.error(exceptioninfo[1])
+  tb = traceback.format_tb(exceptioninfo[2])
+  for line in tb:
+    logger.debug(line.rstrip())
 
 
 

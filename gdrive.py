@@ -25,9 +25,11 @@ class GDrive:
   drive_service = ''
   parent_id = None
   logger = None
+  wrkdir = None
 
-  def __init__(self):
+  def __init__(self, wrkdir):
     self.logger = logging.getLogger('gitbackup')
+    self.wrkdir = wrkdir
     return
 
   def authorize(self):
@@ -40,7 +42,7 @@ class GDrive:
     credentials = flow.step2_exchange(code)
     json = credentials.to_json()
     try:
-      f = open('.gitbackup-gdrive', 'w')
+      f = open(self.wrkdir + '/.gitbackup-gdrive', 'w')
       f.write(str(json))
       f.close()
     except IOError as e:
@@ -54,7 +56,7 @@ class GDrive:
 
   def connect(self, first = True):
     try:
-      f = open('.gitbackup-gdrive', 'r+')
+      f = open(self.wrkdir + '/.gitbackup-gdrive', 'r+')
       json = f.read()
       credentials = OAuth2Credentials.from_json(json)
       # Create an httplib2.Http object and authorize it with our credentials
@@ -98,6 +100,7 @@ class GDrive:
     self.logger.info(">> Uploading {0} ".format(filename).ljust(60, '.'),)
     try:
       # Insert a file
+      print filename
       media_body = MediaFileUpload(filename, mimetype='application/octet-stream', resumable=False)
       body = {
         'title': fileinfo['title'],
