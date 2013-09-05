@@ -37,6 +37,9 @@ nosetests.xml
 # Vim
 *.swp
 
+# Sonar-runner
+sonar-project.properties
+
 # Gitbackup
 *.bundle
 *.log
