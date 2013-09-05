@@ -101,7 +101,6 @@ class GDrive:
     self.logger.info(">> Uploading {0} ".format(filename).ljust(60, '.'),)
     try:
       # Insert a file
-      print filename
       media_body = MediaFileUpload(filename, mimetype='application/octet-stream', resumable=False)
       body = {
         'title': fileinfo['title'],
